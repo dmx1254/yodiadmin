@@ -38,7 +38,10 @@ export default function DashboardPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isCurrencyDialogOpen, setIsCurrencyDialogOpen] = useState(false);
-  const [currency, setCurrency] = useState<{ name: string; rate: number } | null>(null);
+  const [currency, setCurrency] = useState<{
+    name: string;
+    rate: number;
+  } | null>(null);
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
@@ -46,6 +49,7 @@ export default function DashboardPage() {
     totalPages: 0,
   });
 
+  // console.log(orders);
   const fetchOrders = async (page = 1) => {
     try {
       setLoading(true);
@@ -162,7 +166,12 @@ export default function DashboardPage() {
     },
     {
       title: "Montant Total",
-      value: formatCurrency(Number(stats.totalAmount)),
+      value:
+        Number(
+          stats.totalAmount * Number(orders[0].valueCurrency || 1)
+        ).toFixed(2) +
+        " " +
+        orders[0].selectedCurrency,
       icon: ShoppingCart,
       color: "bg-indigo-500",
     },
@@ -192,13 +201,14 @@ export default function DashboardPage() {
       });
       if (!response.ok)
         throw new Error("Erreur lors de la suppression de la commande");
+      const data = await response.json();
       toast.success("Commande supprimée avec succès", {
         style: {
           color: "#10B981",
         },
         position: "top-right",
       });
-      fetchOrders(pagination.page);
+      fetchOrders();
     } catch (error) {
       console.error("Erreur:", error);
       toast.error("Erreur lors de la suppression de la commande", {
